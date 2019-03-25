@@ -1,6 +1,6 @@
 "use strict";
 //const storage = require('node-persist');
-const store = require('scattered-store');
+//const scatteredStore = require('scattered-store');
 /*
  await storage.init({
 	dir: 'persist',
@@ -25,7 +25,7 @@ const store = require('scattered-store');
 */
 var currencyMap = new Map();
 var ordersMap = new Map();
-
+/*
 const store = scatteredStore.create('persist', (err) => {
     // This is optional callback function so you can know
     // when the initialization is done.
@@ -35,8 +35,8 @@ const store = scatteredStore.create('persist', (err) => {
       // Initialization done!
     }
   });
+*/
 
-  
 function get_model(tradeReqAsStr)
 {
  var data = JSON.parse(tradeReqAsStr);
@@ -51,6 +51,7 @@ function get_model(tradeReqAsStr)
    ,"currencyPoint":0.2,"time":"09152017143932","usedMargin":52
    ,"stop":0,"stopMove":0,"limit":0}]
   */
+ 
  if (typeof(data.open_positions) !== 'undefined')
  {
    var open_positions = data.open_positions.sort((a,b)=>
