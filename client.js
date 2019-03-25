@@ -4,6 +4,8 @@ var store = require('./repository');
 
 var io = require('socket.io-client');
 var socket;
+var querystring = require('querystring');
+var tradinghttp = require(store.config.trading_api_proto);
 var globalRequestID = 1;
 var request_headers = {
 	'User-Agent': 'request',
@@ -14,7 +16,7 @@ var get_model = (callback) =>
 {
     store.store.get('token')
     .then((value) => {
-        //console.log(value); // Hello World!
+        console.log(" ----- After get Token FROM REPOSITORY ....."); // Hello World!
         store.config.token = value;
         authenticate ('{ "method":"GET", "resource":"/trading/get_model", "params": { "models":["Offer","OpenPosition","ClosedPosition","Order","Account", "Summary","LeverageProfile","Properties"] } }',callback);
         });
@@ -26,8 +28,8 @@ var get_model = (callback) =>
 var authenticate = (command,callback) => {
    
 	console.log(" @@@@ Before Calling Socket Auth ",store.config.token);
-	console.log(" @@@@ Before Calling Socket Auth Host ",store.config.trading_api_proto + '://' + store.config.trading_api_host);
-	console.log(" @@@@ Before Calling Socket Auth Port ",store.config.trading_api_port);
+	console.log(" @@@@ Before Calling Socket Auth Host ",store.config.trading_api_proto + '://' + store.config.trading_api_host + ':' + store.config.trading_api_port);
+	//console.log(" @@@@ Before Calling Socket Auth Port ",store.config.trading_api_port);
 	socket = io(store.config.trading_api_proto + '://' + store.config.trading_api_host + ':' + store.config.trading_api_port, {
 			query: querystring.stringify({
 				access_token: store.config.token
@@ -82,27 +84,30 @@ var processData = (data,callback) =>{
 	var params = input.substr(inputloc).trim();
 
 	// command must be registered with cli
-	if (cli.eventNames().indexOf(command) >= 0) {
-		if (params.length > 0) {
+//	if (cli.eventNames().indexOf(command) >= 0) {
+	 // no need for this
+   if (params.length > 0) {
 			try {
             //	cli.emit(command, JSON.parse(params));
               var jPrams = JSON.parse(params);
-              jPrams.callback = callback;
-               send(jPrams);    
+							//jPrams.callback = callback;
+							console.log(" >>>>>>>>>>>>> SENDING ",jPrams);
+               send(jPrams,callback);    
         } catch (e) {
 				console.log('could not parse JSON parameters: ', e);
 			}
-		} else {
+		} 
+		 /* else {
 			cli.emit(command, {});
-		}
-		cli.emit('prompt');
-	} else {
+		}*/
+		//cli.emit('prompt');
+	/*} else {
 		console.log('command not found. available commands: ', cli.eventNames());
-	}
+	}*/
 
 };
 
-var send = (parmas) =>
+var send = (params,callback) =>
 {
     if (typeof(params.params) === 'undefined') {
 		params.params = '';
@@ -114,9 +119,11 @@ var send = (parmas) =>
 		console.log('command error: "resource" parameter is missing.');
 	} else {
 	    console.log('@@@@@ Calling ', params.method);
-		console.log('@@@@@ CallBACK <<<<<< ', params.callback);
-		request_processor(params.method, params.resource, params.params, params.callback);
-		console.log('@@@@@ AFTER CallBACK <<<<<< ', params.callback);
+		console.log('@@@@@ CallBACK <<<<<< ', callback);
+		params.params = querystring.stringify(params.params);
+		console.log('@@@@@ PARAMS <<<<<< ', 	params.params);
+		request_processor(params.method, params.resource, params.params, callback);
+		console.log('@@@@@ AFTER CallBACK <<<<<< ', callback);
 	}
 };
 
@@ -137,6 +144,7 @@ var request_processor = (method, resource, params, callback) => {
 	if (method === "GET") {
 		resource += '/?' + params;
 	}
+	console.log(" +++++++++++++++ URL ",resource);
 	var req = tradinghttp.request({
 			host: store.config.trading_api_host,
 			port: store.config.trading_api_port,
@@ -173,4 +181,20 @@ var getNextRequestID = () => {
 };
 
 
+get_model((respId,reqId,data)=>{
+	console.log(" $$$$$ RESP ID " , respId);
+	console.log(" $$$$$ Request ID " , reqId);
+	console.log(" $$$$$ DATA " , data);
+
+});
+/*
+store.config.token = '6fd837423aa6681b9e163363b2c95969528dbf39';//value;
+authenticate ('{ "method":"GET", "resource":"/trading/get_model", "params": { "models":["Offer","OpenPosition","ClosedPosition","Order","Account", "Summary","LeverageProfile","Properties"] } }'
+	,(respId,reqId,data)=>{
+		console.log(" $$$$$ RESP ID " , respId);
+		console.log(" $$$$$ Request ID " , reqId);
+		console.log(" $$$$$ DATA " , data);
+	
+	});
+*/
 module.exports.get_model = get_model;

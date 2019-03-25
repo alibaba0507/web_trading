@@ -6,33 +6,43 @@
         "nib": "^1.0.4"*/
         // for package.json
 //const storage = require('node-persist');
-const scatteredStore = require('scattered-store');
 
-const store = scatteredStore.create('persist', (err) => {
-    // This is optional callback function so you can know
-    // when the initialization is done.
-    if (err) {
-      // Oops! Something went wrong.
-      console.log(" ##### Error Init cattered-store ", err);
-    } else {
-      // Initialization done!
-    }
-  });
+var store = require('./repository');
+var cli = require('./client');
 
+async function getToken()
+{
+    const token = await store.get('token');
+    console.log(" $$$$$$ Funct getToekn " ,token);
+    return token;
+}
 
+//console.log(" ##### Token ",getToken());
 // Require express and create an instance of it
 var express = require('express');
 var app = express();
-
+var token;
 // on the request to root (localhost:3000/)
 app.get('/', function (req, res) {
     // listening for token 
-    if (typeof(req.token) !== 'undefined')
+ 
+    if (typeof(req.query.token) !== 'undefined')
     {
-        store.set('token',req.token);
-        res.send('<b>Token has been saved  .... ',req.token);
-    }
-    res.send('<b>Unknown request ....');
+        store.store.set('token',req.query.token);
+        cli.get_model((respId,reqId,data)=>{
+           res.send('<b>RespId : ' + respId + 
+              '</b></br><b> reqId : ' + reqId 
+               + '</b></br>' + data);
+        });
+       /* store.store.get('token')
+            .then((value) => {
+                //console.log(value); // Hello World!
+                res.send('<b>Token has been saved as pooling from repository  .... ' + value);
+                });
+                */
+        
+    }else
+        res.send('<b>Unknown request ....');
 });
 
 
