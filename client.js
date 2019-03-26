@@ -277,6 +277,25 @@ var loadFxCandles = () =>
 								var diff = candles.length - 150;
 								candles.splice(-1, diff);
 							}
+							
+              // Calculate DeMarker
+							var cnt = candles.length - 2;
+							var DeMax = new Array(cnt + 1);
+							var DeMin =new Array(cnt + 1);
+							while (cnt >= 0)
+							{
+								 var h = Number(candles[cnt][3]) -Number( candles[cnt + 1][3]);
+								 h = (h < 0.0) ? 0.0 : h;
+								 DeMax[cnt] = h;
+								 var l = Number(candles[cnt + 1][8]) -Number( candles[cnt][8]);
+								 l = (l < 0.0) ? 0.0 : l;
+								 DeMin[cnt] = l;
+							}
+							var DeM = [];
+							DeM.push(DeMax);
+							DeM.push(DeMin);
+							store.store.set(element.pair + "_DeM",JSON.stringify(DeM));
+             // ********** End Init and Saving DeMarker  ************//
 							store.store.set(element.pair,JSON.stringify(candles));
 						});
 						
