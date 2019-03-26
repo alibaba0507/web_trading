@@ -3,11 +3,14 @@
 	"version": "0.0.1",
 	"description": "Connetion to trading account",
 	"dependencies": {
-		"express": "3.0.0alpha4",
+		"express": ">=3.11.0",
+		"mime": ">=1.4.1",
+		"qs": ">=1.0.0",
 		"node-cron": "^2.0.3",
 		"nodemailer": "^5.1.1",
 		"scattered-store": "^1.0.1",
-		"socket.io-client": "^2.2.0"
+		"socket.io-client": "^2.2.0",
+		"csv-parser": "^2.2.0"
 	},
 	"devDependencies": {},
 	"scripts": {
