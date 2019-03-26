@@ -17,8 +17,18 @@ var get_model = (callback) =>
     store.store.get('token')
     .then((value) => {
         console.log(" ----- After get Token FROM REPOSITORY ....."); // Hello World!
-        store.config.token = value;
-        authenticate ('{ "method":"GET", "resource":"/trading/get_model", "params": { "models":["Offer","OpenPosition","ClosedPosition","Order","Account", "Summary","LeverageProfile","Properties"] } }',callback);
+				store.config.token = value;
+				//'{ "method":"GET", "resource":"/trading/get_model", "params": { "models":["Offer","OpenPosition","ClosedPosition","Order","Account", "Summary","LeverageProfile","Properties"] } }'
+				//'{ "method":"GET", "resource":"/trading/get_model", "params": { "models":["Offer"] } }'
+				//'{ "method":"GET", "resource":"/trading/get_model", "params": { "models":["OpenPosition",] } }'
+				//'{ "method":"GET", "resource":"/trading/get_model", "params": { "models":["ClosedPosition"] } }'
+				//'{ "method":"GET", "resource":"/trading/get_model", "params": { "models":["Order"] } }'
+				//'{ "method":"GET", "resource":"/trading/get_model", "params": { "models":["Account"] } }'
+				//'{ "method":"GET", "resource":"/trading/get_model", "params": { "models":[ "Summary"] } }'
+				//'{ "method":"GET", "resource":"/trading/get_model", "params": { "models":["LeverageProfile","Properties"] } }'
+				//'{ "method":"GET", "resource":"/candles/1/m1", "params": { "num":10 } }'
+
+        authenticate ( '{ "method":"GET", "resource":"/trading/get_model", "params": { "models":[ "OpenPosition","ClosedPosition","Order","Account", "Summary"] } }',callback);
         });
 };
 
@@ -180,13 +190,15 @@ var getNextRequestID = () => {
 	return globalRequestID++;
 };
 
-
+/*
 get_model((respId,reqId,data)=>{
 	console.log(" $$$$$ RESP ID " , respId);
 	console.log(" $$$$$ Request ID " , reqId);
 	console.log(" $$$$$ DATA " , data);
 
 });
+
+*/
 /*
 store.config.token = '6fd837423aa6681b9e163363b2c95969528dbf39';//value;
 authenticate ('{ "method":"GET", "resource":"/trading/get_model", "params": { "models":["Offer","OpenPosition","ClosedPosition","Order","Account", "Summary","LeverageProfile","Properties"] } }'
