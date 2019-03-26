@@ -210,3 +210,4 @@ authenticate ('{ "method":"GET", "resource":"/trading/get_model", "params": { "m
 	});
 */
 module.exports.get_model = get_model;
+module.exports.authenticate = authenticate;
