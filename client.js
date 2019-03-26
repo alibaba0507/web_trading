@@ -217,6 +217,7 @@ authenticate ('{ "method":"GET", "resource":"/trading/get_model", "params": { "m
  */
 var loadFxCandles = () =>
 {
+	 console.log('>>>>>>>>>>>>> START loadFxCandles  >>>>>>>>>>>>>>>');
 	 // this is from file OfferId.md
 	var pairs = [{"pair":"EUR/USD","id":"1"}
 								 , {"pair":"GBP/USD","id":"3"}
@@ -228,33 +229,62 @@ var loadFxCandles = () =>
 							 , {"pair":"XAU/USD","id":"4001"}
 							];
   pairs.forEach(element => {
+	//	console.log('>>>>>>>>>>>>>> FOR EACH PAIR ',element);
 		store.store.get(element.pair)
     .then((value) => {
-			 if (typeof(value) === 'undefined')
+			//console.log('>>>>>>>>>>>>>> FOR EACH PAIR GET FROM STORE %%%%%%%% ');
+			 if (typeof(value) === 'undefined' || value == null)
 			 {
 				var cmd = '{ "method":"GET", "resource":"/candles/' + element.id + '/m5", "params": { "num":150 } }'
+			//	console.log('>>>>>>> REPOSITORY EMPTY FETCH get_model ',cmd);
 				get_model(cmd,(respId,reqId,data)=>
 				{
-		      store.store.set(element.pair,JSON.stringify(data.candles));
+					var dt = JSON.parse(data);
+				//	console.log(' >>>>>>>>>>>>>> BEORE SAVE TO Store ',dt);
+		      store.store.set(element.pair,JSON.stringify(dt.candles));
 				});
 			 }else
 			 {
-				 var jObj = JSON.parse(value);
+				 try {
+					 
+				 var jobj = JSON.parse(value);
 				 jobj = jobj.sort((a,b)=>{
 					 return (b[0] - a[0]); // sort decending by time where newest time is first
 				 });
+				// console.log('   %%%%%%%  OBJECT FROM STORE ',jobj[0][0]);
 				 var now = new Date();
-				 var d = new Date(Number(jobj[0][0]));
+				 var d = new Date(Number(jobj[0][0])*1000);
+				// console.log('############### LAST DATE FROM STORE ',d.toUTCString());
          var difference = now.getTime() - d.getTime(); // This will give difference in milliseconds
 				 // every candle is a 5 min so we need to know how many candles to request
 				 var resultInMinutes = Math.round(difference / (60000*5)); // 
 				 if (resultInMinutes > 150){resultInMinutes = 150;}
 				 var cmd = '{ "method":"GET", "resource":"/candles/' + element.id + '/m5", "params": { "num":' + resultInMinutes + ' } }'
-					get_model(cmd,(respId,reqId,data)=>
-					{
-		      	store.store.set(element.pair,JSON.stringify(data.candles));
-					});
+					console.log('############### REFILLING THE STORE ',resultInMinutes);
+				
+				 if (Number(resultInMinutes) > 0)
+				 {
+				//	  console.log('********* Sending Request to server ',cmd);
+					 
+					 	get_model(cmd,(respId,reqId,data)=>
+					  {
+							var dt = JSON.parse(data);
+							var candles = dt.candles;
+							candles = candles.concat(jobj);
+							candles = candles.sort((a,b)=>{return (b[0] - a[0]);});
+							if (candles.length > 150)
+							{
+								var diff = candles.length - 150;
+								candles.splice(-1, diff);
+							}
+							store.store.set(element.pair,JSON.stringify(candles));
+						});
+						
+				 }
+				} catch (e) {
+					 console.error(e);
 				}
+			}
 		});
 			//'{ "method":"GET", "resource":"/candles/1/m1", "params": { "num":10 } }'
 		
@@ -262,4 +292,5 @@ var loadFxCandles = () =>
 	});
 }
 module.exports.get_model = get_model;
+loadFxCandles();
 //module.exports.authenticate = authenticate;
