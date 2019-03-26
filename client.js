@@ -12,7 +12,7 @@ var request_headers = {
 	'Accept': 'application/json',
 	'Content-Type': 'application/x-www-form-urlencoded'
 }
-var get_model = (callback) =>
+var get_model = (cmd,callback) =>
 {
     store.store.get('token')
     .then((value) => {
@@ -28,7 +28,7 @@ var get_model = (callback) =>
 				//'{ "method":"GET", "resource":"/trading/get_model", "params": { "models":["LeverageProfile","Properties"] } }'
 				//'{ "method":"GET", "resource":"/candles/1/m1", "params": { "num":10 } }'
 
-        authenticate ( '{ "method":"GET", "resource":"/trading/get_model", "params": { "models":[ "OpenPosition","ClosedPosition","Order","Account", "Summary"] } }',callback);
+        authenticate ( cmd,callback);
         });
 };
 
@@ -209,5 +209,57 @@ authenticate ('{ "method":"GET", "resource":"/trading/get_model", "params": { "m
 	
 	});
 */
+
+/**
+ *  This must run every 5 min means we get 
+ * current time and (%) mod 5 = 0 
+ * run this function
+ */
+var loadFxCandles = () =>
+{
+	 // this is from file OfferId.md
+	var pairs = [{"pair":"EUR/USD","id":"1"}
+								 , {"pair":"GBP/USD","id":"3"}
+								,{"pair":"EUR/GBP","id":"9"}
+							 , {"pair":"EUR/JPY","id":"10"}
+							, {"pair":"GBP/JPY","id":"11"}
+							 , {"pair":"EUR/AUD","id":"14"}
+							 , {"pair":"GBP/AUD","id":"22"}
+							 , {"pair":"XAU/USD","id":"4001"}
+							];
+  pairs.forEach(element => {
+		store.store.get(element.pair)
+    .then((value) => {
+			 if (typeof(value) === 'undefined')
+			 {
+				var cmd = '{ "method":"GET", "resource":"/candles/' + element.id + '/m5", "params": { "num":150 } }'
+				get_model(cmd,(respId,reqId,data)=>
+				{
+		      store.store.set(element.pair,JSON.stringify(data.candles));
+				});
+			 }else
+			 {
+				 var jObj = JSON.parse(value);
+				 jobj = jobj.sort((a,b)=>{
+					 return (b[0] - a[0]); // sort decending by time where newest time is first
+				 });
+				 var now = new Date();
+				 var d = new Date(Number(jobj[0][0]));
+         var difference = now.getTime() - d.getTime(); // This will give difference in milliseconds
+				 // every candle is a 5 min so we need to know how many candles to request
+				 var resultInMinutes = Math.round(difference / (60000*5)); // 
+				 if (resultInMinutes > 150){resultInMinutes = 150;}
+				 var cmd = '{ "method":"GET", "resource":"/candles/' + element.id + '/m5", "params": { "num":' + resultInMinutes + ' } }'
+					get_model(cmd,(respId,reqId,data)=>
+					{
+		      	store.store.set(element.pair,JSON.stringify(data.candles));
+					});
+				}
+		});
+			//'{ "method":"GET", "resource":"/candles/1/m1", "params": { "num":10 } }'
+		
+
+	});
+}
 module.exports.get_model = get_model;
-module.exports.authenticate = authenticate;
+//module.exports.authenticate = authenticate;

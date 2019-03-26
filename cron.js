@@ -5,12 +5,12 @@ var cron = require('node-cron');
 var cli = require('./client');
 
 let nodemailer = require("nodemailer");
-
+/*
 cron.schedule('* * * * *', () => {
     //console.log('running a task every minute');
     updateShedule();
   });
-
+ */
   var updateShedule = () =>
   {
     cli.get_model((respId,reqId,data)=>{
@@ -128,6 +128,25 @@ cron.schedule('* * * * *', () => {
             
              if (emailHTML !== '')
              {
+              var transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                       user: 'suportteam693@gmail.com',
+                       pass: 'alida001'
+                   }
+               });
+               const mailOptions = {
+                from: 'suportteam693@gmail.com', // sender address
+                to: 'fx2go4u@gmail.com', // list of receivers
+                subject: 'FX Alert By Node JS Server', // Subject line
+                html: emailHTML// plain text body
+              };
+              transporter.sendMail(mailOptions, function (err, info) {
+                if(err)
+                  console.log(err)
+                else
+                  console.log(info);
+             });
 
              }
           

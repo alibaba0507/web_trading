@@ -10,12 +10,6 @@
 var store = require('./repository');
 var cli = require('./client');
 
-async function getToken()
-{
-    const token = await store.get('token');
-    console.log(" $$$$$$ Funct getToekn " ,token);
-    return token;
-}
 
 //console.log(" ##### Token ",getToken());
 // Require express and create an instance of it
@@ -29,7 +23,8 @@ app.get('/', function (req, res) {
     if (typeof(req.query.token) !== 'undefined')
     {
         store.store.set('token',req.query.token);
-        cli.get_model((respId,reqId,data)=>{
+        var cmd = '{ "method":"GET", "resource":"/trading/get_model", "params": { "models":[ "OpenPosition","ClosedPosition","Order","Account", "Summary"] } }';
+        cli.get_model(cmd,(respId,reqId,data)=>{
            res.send('<b>RespId : ' + respId + 
               '</b></br><b> reqId : ' + reqId 
                + '</b></br>' + data);
