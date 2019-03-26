@@ -56,10 +56,13 @@ cron.schedule('* * * * *', () => {
 
                     // update store with new data
                     if (recordModified == true)  
-                        store.store.set('summary',JSON.stringify(jsonObj.summary));
+                      {
+                       store.store.set('summary',JSON.stringify(jsonObj.summary));
+                       updateNotification(jsonObj,modifiedElements);
+                      }
                   }else // update parsitend store summary 
                    store.store.set('summary',JSON.stringify(jsonObj.summary));
-                  updateNotification(jsonObj,modifiedElements);
+                  
               });
             }  
         } catch (e) {
@@ -97,7 +100,9 @@ cron.schedule('* * * * *', () => {
               {
                var newSumary = element[0];
                var oldSumary = element[1];
-               emailHTML += '<tr><td>' + newSumary.currency  
+               var mapOpenPosition = (typeof(openPosition) === 'undefined')
+                            ? [] :openPosition.filter((openPosition) => { openPosition.currency ===   newSumary.currency });
+               var rowSummary = '<tr><td>' + newSumary.currency  
                           + '</td>' + '<td>' + newSumary.amountKSell 
                           + '</td><td>' + newSumary.amountKBuy
                           + '</td><td><b><font color=' 
@@ -109,10 +114,22 @@ cron.schedule('* * * * *', () => {
                               ? '"green">':'"red">')
                              + newSumary.netPL 
                             + '</font></b>(' + oldSumary.netPL + ')'
-                            + '</td></tr>';
-                             
+                            + '</td><td></td></tr>';
+                var tblOpenPos = '<table><tbody><tr><th>Pair</th>type</th><th>Size</th><th>Profit</th><th></th><th></th></tr>';
+                mapOpenPosition.forEach(openpos =>{
+                  tblOpenPos += '<tr><td>' + openpos.currency + '</td><td>'
+                        + ((openpos.isBuy) ? 'Buy' : 'Sell') + '</td><td>'
+                        + openpos.amountK + '</td><td>'
+                        + openpos.grossPL + '</td><td></td><td></td><td></td></tr>'; 
+                });
+                tblOpenPos +=  rowSummary + '</tbody></table>';    
+                emailHTML += tblOpenPos;      
              });
+            
+             if (emailHTML !== '')
+             {
 
+             }
           
   
       }catch(e)
